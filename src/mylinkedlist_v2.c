@@ -1,7 +1,8 @@
 /*
-带头尾虚节点的双向链表：指针版本
-2026-1-6
+2026-1-6 带头尾虚节点的双向链表：指针版本
+2026-1-8 补充了增删改查的完整功能
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -56,10 +57,6 @@ MyLinkedList* InitializeLinkedList()
 /* index从0开始，一直到size-1 */
 static Node* GetNode(MyLinkedList *linkedlist, int index)
 {
-    if (index < 0 || index >= linkedlist->size) {
-        puts("Index error!");
-        return NULL;
-    }
     Node *objectNode = linkedlist->head->next;
     for (int i = 0; i < index; i++) {
         objectNode = objectNode->next;
@@ -67,12 +64,13 @@ static Node* GetNode(MyLinkedList *linkedlist, int index)
     return objectNode;
 }
 
-static void FreeNode(Node *node)
+void FreeNode(Node *node)
 {
     free(node);
     node = NULL;
 }
 
+/* 增 */
 void AddAtHead(MyLinkedList *linkedlist, unsigned char val)
 {
     Node *newNode = InitializeNode();
@@ -122,6 +120,7 @@ void AddAtIndex(MyLinkedList *linkedlist, unsigned char val, int index)
     }
 }
 
+/* 删 */
 void DeleteAtHead(MyLinkedList *linkedlist)
 {
     if (linkedlist->size == 0) { // 不能删掉不存在的节点
@@ -174,13 +173,53 @@ void DeleteAtIndex(MyLinkedList *linkedlist, int index)
     }
 }
 
-/*
-总结：
+void DestroyLinkedList(MyLinkedList *linkedlist)
+{
+    Node *to_delete = linkedlist->head->next;
+    for (int i = 0; i < linkedlist->size; i++) {
+        to_delete = to_delete->next;
+        FreeNode(to_delete->prev);
+    }
+    FreeNode(linkedlist->head);
+    FreeNode(linkedlist->tail);
+    free(linkedlist);
+    linkedlist = NULL;
+}
 
-*/
+/* 改 */
+void ModifyIndex(MyLinkedList *linkedlist, int val, int index)
+{
+    Node *indexNode = GetNode(linkedlist, index);
+    indexNode->val = val;
+}
 
-/* 下面是ai生成的测试代码 */
-/* 打印链表 */
+/* 查 */
+int IsEmpty(MyLinkedList *linkedlist)
+{
+    return linkedlist->size == 0;
+}
+
+int GetSize(MyLinkedList *linkedlist)
+{
+    return linkedlist->size;
+}
+
+int GetHead(MyLinkedList *linkedlist)
+{
+    return linkedlist->head->next->val;
+}
+
+int GetTail(MyLinkedList *linkedlist)
+{
+    return linkedlist->tail->prev->val;
+}
+
+int GetIndexVal(MyLinkedList *linkedlist, int index)
+{
+    Node *indexNode = GetNode(linkedlist, index);
+    return indexNode->val;
+}
+
 void PrintLinkedList(MyLinkedList *linkedlist)
 {
     printf("Linked List (size=%d): ", linkedlist->size);
@@ -192,7 +231,6 @@ void PrintLinkedList(MyLinkedList *linkedlist)
     printf("\n");
 }
 
-/* 反向打印链表（测试双向性） */
 void PrintLinkedListReverse(MyLinkedList *linkedlist)
 {
     printf("Linked List Reverse: ");
@@ -204,59 +242,7 @@ void PrintLinkedListReverse(MyLinkedList *linkedlist)
     printf("\n");
 }
 
-/* 获取链表大小 */
-int GetSize(MyLinkedList *linkedlist)
-{
-    return linkedlist->size;
-}
-
-/* 检查链表是否为空 */
-int IsEmpty(MyLinkedList *linkedlist)
-{
-    return linkedlist->size == 0;
-}
-
-/* 获取头节点值（不含哑节点） */
-unsigned char GetHead(MyLinkedList *linkedlist)
-{
-    if (linkedlist->size == 0) {
-        printf("List is empty!\n");
-        return 0;
-    }
-    return linkedlist->head->next->val;
-}
-
-/* 获取尾节点值（不含哑节点） */
-unsigned char GetTail(MyLinkedList *linkedlist)
-{
-    if (linkedlist->size == 0) {
-        printf("List is empty!\n");
-        return 0;
-    }
-    return linkedlist->tail->prev->val;
-}
-
-/* 释放整个链表 */
-void FreeLinkedList(MyLinkedList *linkedlist)
-{
-    if (linkedlist == NULL) return;
-    
-    // 释放所有数据节点
-    Node *current = linkedlist->head->next;
-    while (current != linkedlist->tail) {
-        Node *next = current->next;
-        free(current);
-        current = next;
-    }
-    
-    // 释放哑节点
-    free(linkedlist->head);
-    free(linkedlist->tail);
-    
-    // 释放链表结构体
-    free(linkedlist);
-}
-
+/* 测试程序(ai写的) */
 int main()
 {
     printf("=== 测试双向链表 ===\n");
@@ -282,7 +268,7 @@ int main()
     // 测试空链表删除
     MyLinkedList* emptyList = InitializeLinkedList();
     DeleteAtHead(emptyList);    // 应该打印错误信息
-    FreeLinkedList(emptyList);
+    DestroyLinkedList(emptyList);
     
     // 测试无效索引
     AddAtIndex(list, 100, 5);   // 索引5超出范围，size=3
@@ -310,7 +296,7 @@ int main()
     printf("尾节点值: %d\n", GetTail(list));
     
     // 清理
-    FreeLinkedList(list);
+    DestroyLinkedList(list);
     
     printf("\n=== 测试完成 ===\n");
     return 0;

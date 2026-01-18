@@ -1,9 +1,13 @@
 /*
-带头尾虚节点的双向环形链表, 递归法解约瑟夫环问题
-2026-1-6
+2026-1-6 带头尾虚节点的双向环形链表, 递归法解约瑟夫环问题
+2026-1-8 添加了调试宏
 */
+
 #include <stdio.h>
 #include <stdlib.h>
+#include "dbg.h"
+
+#define NDEBUG
 
 typedef struct Node Node; 
 typedef struct MyRingLinkedList MyRingLinkedList;
@@ -35,23 +39,34 @@ static Node* InitializeNode()
     return node;
 }
 
-/* 链表在初始化时就创建 */
-static MyRingLinkedList* InitializeLinkedList()
+static void FreeNode(Node *node)
+{
+    free(node);
+    node = NULL;
+}
+
+static MyRingLinkedList* InitializeJosephRing(int N)
 {
     MyRingLinkedList* ringlinkedlist = (MyRingLinkedList*)malloc(sizeof(MyRingLinkedList));
+    
     if (ringlinkedlist == NULL) {
         puts("Memory allocation failed!");
         return NULL;
     }
+
     ringlinkedlist->head = InitializeNode();
     ringlinkedlist->tail = InitializeNode();
     ringlinkedlist->head->next = ringlinkedlist->tail;
     ringlinkedlist->head->prev = ringlinkedlist->tail;
     ringlinkedlist->tail->prev = ringlinkedlist->head;
     ringlinkedlist->tail->next = ringlinkedlist->head;
-    ringlinkedlist->head->val = -1;
-    ringlinkedlist->tail->val = -1;
-    ringlinkedlist->size = 0;
+    ringlinkedlist->head->val = 1;
+    ringlinkedlist->tail->val = N;
+    ringlinkedlist->size = N;
+
+    for (int i = 1; i < N-1; i++) {
+        AddAtTail(ringlinkedlist, i+1);
+    }
     return ringlinkedlist;
 }
 
@@ -65,24 +80,6 @@ static void AddAtTail(MyRingLinkedList *ringlinkedlist, int val)
     newNode->next = ringlinkedlist->tail;
     temp->next = newNode;
     newNode->prev = temp;
-}
-
-MyRingLinkedList* InitializeJosephRing(int N)
-{
-    MyRingLinkedList* raw_ring = InitializeLinkedList();
-    raw_ring->head->val = 1;
-    raw_ring->tail->val = N;
-    for (int i = 1; i < N-1; i++) {
-        AddAtTail(raw_ring, i+1);
-    }
-    raw_ring->size = N;
-    return raw_ring;
-}
-
-static void FreeNode(Node *node)
-{
-    free(node);
-    node = NULL;
 }
 
 void DeleteIteration(Node *node, int step, int size, int cnt)
@@ -128,15 +125,15 @@ void DeleteNode(MyRingLinkedList *ringlinkedlist, int step)
 
 int main(int argc, char* argv[])
 {
-	int N = atoi(argv[1]);
-	int M = atoi(argv[2]);
-
     if (M <= 0 || N <= 1 || argc != 3 || M > N) {
         printf("Are you kidding me?\n");
         return 0;
     }
 
+    int N = atoi(argv[1]);
+	int M = atoi(argv[2]);
+
     MyRingLinkedList *JosephRing = InitializeJosephRing(N);
     DeleteNode(JosephRing, M);
-    return 0;   
+    return 0;
 }
